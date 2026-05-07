@@ -52,10 +52,15 @@ bool Display::renderClock(uint8_t hour, uint8_t min){
     if (!SSD1306_init) return false;
     reset();
 
-    SSD1306.setCursor(SCREEN_WIDTH_PX / 2, SCREEN_HEIGHT_PX / 2);
     SSD1306.setTextColor(SSD1306_WHITE);
     SSD1306.setTextSize(1);
+
+    SSD1306.setCursor(0,0);
+    SSD1306.print("Clock");
+
+    SSD1306.setCursor(SCREEN_WIDTH_PX / 2, SCREEN_HEIGHT_PX / 2);
     SSD1306.printf("%02u:%02u", hour, min);
+
     SSD1306.display();
 
     return true;
@@ -65,10 +70,15 @@ bool Display::renderCounter(uint32_t count){
     if (!SSD1306_init) return false;
     reset();
 
-    SSD1306.setCursor(SCREEN_WIDTH_PX / 2, SCREEN_HEIGHT_PX / 2);
     SSD1306.setTextColor(SSD1306_WHITE);
     SSD1306.setTextSize(1);
+
+    SSD1306.setCursor(0,0);
+    SSD1306.print("Counter");
+
+    SSD1306.setCursor(SCREEN_WIDTH_PX / 2, SCREEN_HEIGHT_PX / 2);
     SSD1306.printf("%u", count);
+
     SSD1306.display();
 
     return true;
