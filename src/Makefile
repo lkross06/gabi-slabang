@@ -24,7 +24,7 @@ export FOOTER
 
 splash.h: make_splash.py slabang-splash.png
 	echo "$$HEADER" > $@
-	${PY} make_splash.py slabang-splash.png splash1 >>$@
+	${PY} make_splash.py slabang-splash.png loading_splash >>$@
 	echo "$$FOOTER" >> $@
 
 clean:
