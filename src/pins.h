@@ -19,3 +19,5 @@
 #define BUTTON_DECHOUR      5
 #define BUTTON_INCMIN       6
 #define BUTTON_DECMIN       7
+#define BUTTON_INCCOUNT     17
+#define BUTTON_DECCOUNT     18

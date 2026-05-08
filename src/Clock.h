@@ -10,7 +10,7 @@
 #define COMPILE_BUILD_TIME_S    7U
 
 /* CLOCK ASYNC SIGNAL TYPES */
-enum class CAS : uint8_t {
+enum class ClockSignal : uint8_t {
     NONE        = 0,
     SQW         = 1,    //one second has passed
     INC_HOUR    = 2,
@@ -30,7 +30,7 @@ public:
 
     inline DateTime now() { return rtc.now(); }
 
-    volatile CAS interrupt_flag;
+    volatile ClockSignal interrupt_flag;
 private:
     RTC_DS3231 rtc; //source of truth!!
 };

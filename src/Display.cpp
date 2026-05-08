@@ -10,7 +10,10 @@ Display::Display() :
         SSD1306_RST,
         SSD1306_CS
     ),
-    SSD1306_init(false)
+    SSD1306_init(false),
+    current_page(DisplayPage::NONE),
+    last_clock_render({0, 0, 0, false}),
+    last_counter_render({0})
 {};
 
 bool Display::begin(){
@@ -50,13 +53,14 @@ bool Display::renderLoadingSequence(uint16_t wait_ms, uint8_t steps_px){
 
 bool Display::renderClock(uint8_t hour, uint8_t min, uint8_t sec, bool isPM){
     if (!SSD1306_init) return false;
+    if (!should_renderClock(hour, min, sec, isPM)) return false;
     reset();
 
     SSD1306.setTextColor(SSD1306_WHITE);
     SSD1306.setTextSize(1);
 
     SSD1306.setCursor(SCREEN_WIDTH_PX / 2 - 32, SCREEN_HEIGHT_PX / 2);
-    SSD1306.printf("%02u:%02u:%02u %s", hour, min, sec, (isPM)? "PM" : "AM");
+    SSD1306.printf("%02u:%02u:%02u %s", hour, min, sec, (isPM)? "pm" : "am");
 
     SSD1306.display();
 
@@ -65,13 +69,21 @@ bool Display::renderClock(uint8_t hour, uint8_t min, uint8_t sec, bool isPM){
 
 bool Display::renderCounter(uint32_t count){
     if (!SSD1306_init) return false;
+    if (!should_renderCounter(count)) return false;
     reset();
 
     SSD1306.setTextColor(SSD1306_WHITE);
     SSD1306.setTextSize(1);
 
-    SSD1306.setCursor(SCREEN_WIDTH_PX / 2, SCREEN_HEIGHT_PX / 2);
-    SSD1306.printf("%u", count);
+    SSD1306.setCursor(0, 0);
+    if (count > 1){
+        SSD1306.printf("I'll see you in %u days!", count);
+    } else if (count == 1) {
+        SSD1306.printf("I'll see you tomorrow!!");
+    } else {
+        SSD1306.printf("Today's the day!!!");
+    }
+    
 
     SSD1306.display();
 
@@ -81,4 +93,29 @@ bool Display::renderCounter(uint32_t count){
 void Display::reset(){
     SSD1306.clearDisplay();
     SSD1306.setCursor(0, 0);
+}
+
+bool Display::should_renderClock(uint8_t hour, uint8_t min, uint8_t sec, bool isPM){
+    bool changed = (hour != last_clock_render.hour || min != last_clock_render.min || sec != last_clock_render.sec || isPM != last_clock_render.isPM);
+
+    if (current_page == DisplayPage::CLOCK && !changed) return false; 
+
+    current_page = DisplayPage::CLOCK;
+    last_clock_render.hour = hour;
+    last_clock_render.min = min;
+    last_clock_render.sec = sec;
+    last_clock_render.isPM = isPM;
+
+    return true;
+}
+
+bool Display::should_renderCounter(uint32_t count){
+    bool changed = (count != last_counter_render.count);
+
+    if (current_page == DisplayPage::COUNTER && !changed) return false;
+
+    current_page = DisplayPage::COUNTER;
+    last_counter_render.count = count;
+
+    return true;
 }

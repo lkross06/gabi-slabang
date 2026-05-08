@@ -14,6 +14,14 @@
 
 class Display {
 public:
+
+    enum class DisplayPage : uint8_t {
+        NONE    = 0,
+        LOADING = 1,
+        CLOCK   = 2,
+        COUNTER = 3
+    };
+
     Display();
 
     /* Start SPI and OLED display, allows renders and reset to do work when called */
@@ -32,4 +40,19 @@ private:
     // OLED 128x64 display module
     Adafruit_SSD1306 SSD1306;
     bool SSD1306_init;
+
+    //Keep track of last display state so we don't keep re-rendering the same thing
+    DisplayPage current_page;
+    
+    struct {
+        uint8_t hour, min, sec;
+        bool isPM;
+    } last_clock_render;
+
+    struct {
+        uint32_t count;
+    } last_counter_render;
+
+    bool should_renderClock(uint8_t hour, uint8_t min, uint8_t sec, bool isPM);
+    bool should_renderCounter(uint32_t count);
 };

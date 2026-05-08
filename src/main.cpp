@@ -6,6 +6,7 @@
 #include "pins.h"
 #include "Display.h"
 #include "Clock.h"
+#include "Counter.h"
 
 enum class STATE : bool {
   CLOCK = 0,
@@ -14,6 +15,7 @@ enum class STATE : bool {
 
 //Initialize RTC, counter, and LED display modules. Keep track of system state
 Clock rtc;
+Counter counter;
 Display display;
 volatile STATE state;
 
@@ -23,14 +25,20 @@ EasyButton button_incHour(BUTTON_INCHOUR);
 EasyButton button_decHour(BUTTON_DECHOUR);
 EasyButton button_incMin(BUTTON_INCMIN);
 EasyButton button_decMin(BUTTON_DECMIN);
+EasyButton button_incCount(BUTTON_INCCOUNT);
+EasyButton button_decCount(BUTTON_DECCOUNT);
 
-// Global interrupt handlers for async buttons AND 1 Hz square wave from RTC
-void IRAM_ATTR handle_sqw() { rtc.interrupt_flag = CAS::SQW; }
-void IRAM_ATTR handle_incHour() { rtc.interrupt_flag = CAS::INC_HOUR; }
-void IRAM_ATTR handle_decHour() { rtc.interrupt_flag = CAS::DEC_HOUR; }
-void IRAM_ATTR handle_incMin() { rtc.interrupt_flag = CAS::INC_MIN; }
-void IRAM_ATTR handle_decMin() { rtc.interrupt_flag = CAS::DEC_MIN; }
+// Global interrupt handlers
+
+//TODO: should only be able to edit state while in that state
+void IRAM_ATTR handle_sqw() { rtc.interrupt_flag = ClockSignal::SQW; }
+void IRAM_ATTR handle_incHour() { rtc.interrupt_flag = ClockSignal::INC_HOUR; }
+void IRAM_ATTR handle_decHour() { rtc.interrupt_flag = ClockSignal::DEC_HOUR; }
+void IRAM_ATTR handle_incMin() { rtc.interrupt_flag = ClockSignal::INC_MIN; }
+void IRAM_ATTR handle_decMin() { rtc.interrupt_flag = ClockSignal::DEC_MIN; }
 void IRAM_ATTR handle_switchState() { state = (state == STATE::CLOCK)? STATE::COUNTER : STATE::CLOCK; }
+void IRAM_ATTR handle_incCount() { counter.interrupt_flag = CounterSignal::INC_COUNT; }
+void IRAM_ATTR handle_decCount() { counter.interrupt_flag = CounterSignal::DEC_COUNT; }
 
 void setup() {
     Serial.begin(115200);
@@ -39,6 +47,7 @@ void setup() {
     //NOTE: start RTC before display so that clock counts through the loading sequence
     if (!rtc.begin()) { Serial.println("failure"); while(1); };
     if (!display.begin()) { Serial.println("failure"); while(1); };
+    if (!counter.begin()) { Serial.println("failure"); while(1); };
 
     // global interrupt handler for 1Hz Square Wave from DS3231 RTC
     pinMode(DS3231_SQW, INPUT_PULLUP);
@@ -49,12 +58,16 @@ void setup() {
     button_decHour.begin();
     button_incMin.begin();
     button_decMin.begin();
+    button_incCount.begin();
+    button_decCount.begin();
 
     button_switchState.onPressed(handle_switchState);
     button_incHour.onPressed(handle_incHour);
     button_decHour.onPressed(handle_decHour);
     button_incMin.onPressed(handle_incMin);
     button_decMin.onPressed(handle_decMin);
+    button_incCount.onPressed(handle_incCount);
+    button_decCount.onPressed(handle_decCount);
 
     state = STATE::CLOCK;
 
@@ -64,21 +77,22 @@ void setup() {
 
 void loop() {
     // poll all peripherals
-    rtc.update();
     button_switchState.read();
     button_incHour.read();
     button_decHour.read();
     button_incMin.read();
     button_decMin.read();
-
-    //TODO: don't want display to clear / re-render if no changes were made..
+    button_incCount.read();
+    button_decCount.read();
+    
+    rtc.update();
+    counter.update();
 
     if (state == STATE::CLOCK){
         DateTime now = rtc.now();
         display.renderClock(now.twelveHour(), now.minute(), now.second(), now.isPM());
-    } else {
-        display.renderCounter(67);
+    } else if (state == STATE::COUNTER){
+        uint32_t num_days = counter.num_days_between(rtc.now());
+        display.renderCounter(num_days);
     }
-
-    delay(5);
 }
