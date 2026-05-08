@@ -29,16 +29,16 @@ EasyButton button_incCount(BUTTON_INCCOUNT);
 EasyButton button_decCount(BUTTON_DECCOUNT);
 
 // Global interrupt handlers
+void IRAM_ATTR handle_sqw() { if(state == STATE::CLOCK) rtc.interrupt_flag = ClockSignal::SQW; }
+void IRAM_ATTR handle_incHour() { if(state == STATE::CLOCK) rtc.interrupt_flag = ClockSignal::INC_HOUR; }
+void IRAM_ATTR handle_decHour() { if(state == STATE::CLOCK) rtc.interrupt_flag = ClockSignal::DEC_HOUR; }
+void IRAM_ATTR handle_incMin() { if(state == STATE::CLOCK) rtc.interrupt_flag = ClockSignal::INC_MIN; }
+void IRAM_ATTR handle_decMin() { if(state == STATE::CLOCK) rtc.interrupt_flag = ClockSignal::DEC_MIN; }
 
-//TODO: should only be able to edit state while in that state
-void IRAM_ATTR handle_sqw() { rtc.interrupt_flag = ClockSignal::SQW; }
-void IRAM_ATTR handle_incHour() { rtc.interrupt_flag = ClockSignal::INC_HOUR; }
-void IRAM_ATTR handle_decHour() { rtc.interrupt_flag = ClockSignal::DEC_HOUR; }
-void IRAM_ATTR handle_incMin() { rtc.interrupt_flag = ClockSignal::INC_MIN; }
-void IRAM_ATTR handle_decMin() { rtc.interrupt_flag = ClockSignal::DEC_MIN; }
 void IRAM_ATTR handle_switchState() { state = (state == STATE::CLOCK)? STATE::COUNTER : STATE::CLOCK; }
-void IRAM_ATTR handle_incCount() { counter.interrupt_flag = CounterSignal::INC_COUNT; }
-void IRAM_ATTR handle_decCount() { counter.interrupt_flag = CounterSignal::DEC_COUNT; }
+
+void IRAM_ATTR handle_incCount() { if(state == STATE::COUNTER) counter.interrupt_flag = CounterSignal::INC_COUNT; }
+void IRAM_ATTR handle_decCount() { if(state == STATE::COUNTER) counter.interrupt_flag = CounterSignal::DEC_COUNT; }
 
 void setup() {
     Serial.begin(115200);
