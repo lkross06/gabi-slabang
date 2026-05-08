@@ -12,16 +12,19 @@ enum class STATE : bool {
   COUNTER = 1
 };
 
+//Initialize RTC, counter, and LED display modules. Keep track of system state
 Clock rtc;
 Display display;
 volatile STATE state;
 
+//User-controlled tactile buttons, debounced with EasyButton sampling
 EasyButton button_switchState(BUTTON_SWITCHSTATE);
 EasyButton button_incHour(BUTTON_INCHOUR);
 EasyButton button_decHour(BUTTON_DECHOUR);
 EasyButton button_incMin(BUTTON_INCMIN);
 EasyButton button_decMin(BUTTON_DECMIN);
 
+// Global interrupt handlers for async buttons AND 1 Hz square wave from RTC
 void IRAM_ATTR handle_sqw() { rtc.interrupt_flag = CAS::SQW; }
 void IRAM_ATTR handle_incHour() { rtc.interrupt_flag = CAS::INC_HOUR; }
 void IRAM_ATTR handle_decHour() { rtc.interrupt_flag = CAS::DEC_HOUR; }
@@ -60,19 +63,18 @@ void setup() {
 }
 
 void loop() {
-    DateTime now = rtc.now();
-
-    if(rtc.update()){
-        Serial.printf("%02u:%02u:%02u %s\n", now.twelveHour(), now.minute(), now.second(), (now.isPM())? "PM" : "AM");
-    }
-
+    // poll all peripherals
+    rtc.update();
     button_switchState.read();
     button_incHour.read();
     button_decHour.read();
     button_incMin.read();
     button_decMin.read();
-  
+
+    //TODO: don't want display to clear / re-render if no changes were made..
+
     if (state == STATE::CLOCK){
+        DateTime now = rtc.now();
         display.renderClock(now.twelveHour(), now.minute(), now.second(), now.isPM());
     } else {
         display.renderCounter(67);

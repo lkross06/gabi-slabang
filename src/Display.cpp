@@ -9,9 +9,9 @@ Display::Display() :
         SSD1306_DC,
         SSD1306_RST,
         SSD1306_CS
-    ) {
-    SSD1306_init = false;
-};
+    ),
+    SSD1306_init(false)
+{};
 
 bool Display::begin(){
     SPI.begin(SSD1306_CLK, SSD1306_MISO, SSD1306_MOSI, SSD1306_CS);
@@ -55,9 +55,6 @@ bool Display::renderClock(uint8_t hour, uint8_t min, uint8_t sec, bool isPM){
     SSD1306.setTextColor(SSD1306_WHITE);
     SSD1306.setTextSize(1);
 
-    SSD1306.setCursor(0,0);
-    SSD1306.print("Clock");
-
     SSD1306.setCursor(SCREEN_WIDTH_PX / 2 - 32, SCREEN_HEIGHT_PX / 2);
     SSD1306.printf("%02u:%02u:%02u %s", hour, min, sec, (isPM)? "PM" : "AM");
 
@@ -72,9 +69,6 @@ bool Display::renderCounter(uint32_t count){
 
     SSD1306.setTextColor(SSD1306_WHITE);
     SSD1306.setTextSize(1);
-
-    SSD1306.setCursor(0,0);
-    SSD1306.print("Counter");
 
     SSD1306.setCursor(SCREEN_WIDTH_PX / 2, SCREEN_HEIGHT_PX / 2);
     SSD1306.printf("%u", count);

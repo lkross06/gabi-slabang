@@ -13,6 +13,7 @@
 #define DS3231_SCL          42
 #define DS3231_SQW          40      // interrupts on INPUT_PULLUP at set rate
 
+/* User-controlled tactile buttons */
 #define BUTTON_SWITCHSTATE  21
 #define BUTTON_INCHOUR      4
 #define BUTTON_DECHOUR      5

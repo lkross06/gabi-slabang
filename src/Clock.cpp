@@ -14,9 +14,6 @@ bool Clock::begin(){
     DateTime compileTime = DateTime(F(__DATE__), F(__TIME__));
     rtc.adjust(compileTime.unixtime() + COMPILE_BUILD_TIME_S);
 
-    DateTime now = rtc.now();
-    Serial.printf("Clock thinks the time is %02u:%02u:%02u %s\n", now.twelveHour(), now.minute(), now.second(), (now.isPM())? "PM" : "AM");
-
     // configure 1Hz Square Wave output on SQW pin
     rtc.writeSqwPinMode(DS3231_SquareWave1Hz);
 

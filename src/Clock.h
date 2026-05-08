@@ -6,6 +6,7 @@
 #define AM 0
 #define PM 1
 
+/* Estimate of the time between the computer last updates the RTC's time ref, and when RTC starts counting */
 #define COMPILE_BUILD_TIME_S    7U
 
 /* CLOCK ASYNC SIGNAL TYPES */
@@ -22,13 +23,14 @@ class Clock {
 public:
     Clock();
 
+    /* Initialize RTC module, start counting with 1Hz square wave interrupts */
     bool begin();
+    /* Looks at the interrupt flag set by the global interrupt handler, then adjusts the RTC internal clock. Return true if any changes are made */
     bool update();
 
     inline DateTime now() { return rtc.now(); }
 
     volatile CAS interrupt_flag;
-
 private:
     RTC_DS3231 rtc; //source of truth!!
 };

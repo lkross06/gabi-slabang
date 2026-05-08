@@ -16,14 +16,17 @@ class Display {
 public:
     Display();
 
-    /** Start SPI and OLED display, allows renders and reset to do work when called */
+    /* Start SPI and OLED display, allows renders and reset to do work when called */
     bool begin();
 
+    /* Renders a bitmap and plays loading bar animation on startup. Just looks cool lol */
     bool renderLoadingSequence(uint16_t wait_ms = DEFAULT_LOADING_WAIT_MS, uint8_t steps_px = DEFAULT_LOADING_STEPS_PX);
+    /* Renders the clock screen with a given time */
     bool renderClock(uint8_t hour, uint8_t min, uint8_t sec, bool isPM);
+    /* Renders the day counter with a set count */
     bool renderCounter(uint32_t count);
     
-    /** Clears display and resets mode to default, renders default screen */
+    /* Clears display and resets mode to default, renders default screen */
     void reset();
 private:
     // OLED 128x64 display module
