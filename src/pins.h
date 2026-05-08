@@ -7,3 +7,8 @@
 #define SSD1306_RST         9       // labeled RES
 #define SSD1306_DC          8
 #define SSD1306_CS          10
+
+/* DS3231 Real-Time Clock (RTC) via I2C */
+#define DS3231_SDA          41
+#define DS3231_SCL          42
+#define DS3231_SQW          40      // interrupts on INPUT_PULLUP at set rate
