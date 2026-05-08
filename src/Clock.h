@@ -6,21 +6,32 @@
 #define AM 0
 #define PM 1
 
+#define COMPILE_BUILD_TIME_S    8U
+
+/* CLOCK ASYNC SIGNAL TYPES */
+enum class CAS : uint8_t {
+    NONE        = 0,
+    SQW         = 1,    //one second has passed
+    INC_HOUR    = 2,
+    DEC_HOUR    = 3,
+    INC_MIN     = 4,
+    DEC_MIN     = 5
+};
+
 class Clock {
 public:
     Clock();
 
     bool begin();
-    void update();
+    bool update();
 
-    uint8_t hour() { return now.twelveHour(); }
-    uint8_t minute() { return now.minute(); }
-    uint8_t second() { return now.second(); }
-    bool time_of_day() { return (now.hour() > 12)? PM : AM; }
+    inline uint8_t hour() { return rtc.now().twelveHour(); }
+    inline uint8_t minute() { return rtc.now().minute(); }
+    inline uint8_t second() { return rtc.now().second(); }
+    inline bool time_of_day() { return (rtc.now().hour() > 12)? PM : AM; }
 
-    volatile bool interrupt_flag;
+    volatile CAS interrupt_flag;
 
 private:
-    DateTime now;
-    RTC_DS3231 rtc;
+    RTC_DS3231 rtc; //source of truth!!
 };

@@ -4,16 +4,15 @@
 
 #include "pins.h"
 
-Clock::Clock() : interrupt_flag(false) {}
+Clock::Clock() : interrupt_flag(CAS::NONE) {}
 
 bool Clock::begin(){
     if (!Wire.begin(DS3231_SDA, DS3231_SCL)) return false;
     if (!rtc.begin()) return false;
 
-    // adjust by ~7s for compile time
-    const auto compile_time_s = 7U;
+    // adjust by a few seconds to account for compile/build time
     DateTime compileTime = DateTime(F(__DATE__), F(__TIME__));
-    rtc.adjust(compileTime.unixtime() + compile_time_s);
+    rtc.adjust(compileTime.unixtime() + COMPILE_BUILD_TIME_S);
 
     // configure 1Hz Square Wave output on SQW pin
     rtc.writeSqwPinMode(DS3231_SquareWave1Hz);
@@ -21,6 +20,33 @@ bool Clock::begin(){
     return true;
 }
 
-void Clock::update(){
-    now = rtc.now();
+bool Clock::update(){
+    if (interrupt_flag == CAS::NONE) return false;
+
+    //reset flag
+    interrupt_flag = CAS::NONE;
+
+    int32_t delta_seconds = 0;
+    switch (interrupt_flag){
+        case CAS::INC_HOUR:
+            delta_seconds = 3600;
+            break;
+        case CAS::DEC_HOUR:
+            delta_seconds = -3600;
+            break;
+        case CAS::INC_MIN:
+            delta_seconds = 60;
+            break;
+        case CAS::DEC_MIN:
+            delta_seconds = -60;
+            break;
+        default:
+            return true;
+    }
+
+    //update RTC over I2C (slow part!!)
+    DateTime current = rtc.now();
+    rtc.adjust(DateTime(current.unixtime() + delta_seconds));
+
+    return true;
 }

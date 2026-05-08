@@ -64,7 +64,12 @@
 
 Clock rtc;
 
-void IRAM_ATTR onSecond();
+/* Handle a tick of the square wave interrupt sent by DS3231 RTC at 1 Hz */
+void IRAM_ATTR handle_sqw() { rtc.interrupt_flag = CAS::SQW; }
+void IRAM_ATTR handle_incHour() { rtc.interrupt_flag = CAS::INC_HOUR; }
+void IRAM_ATTR handle_decHour() { rtc.interrupt_flag = CAS::DEC_HOUR; }
+void IRAM_ATTR handle_incMin() { rtc.interrupt_flag = CAS::INC_MIN; }
+void IRAM_ATTR handle_decMin() { rtc.interrupt_flag = CAS::DEC_MIN; }
 
 void setup() {
     Serial.begin(115200);
@@ -74,18 +79,12 @@ void setup() {
 
     // global interrupt handler for 1Hz Square Wave from DS3231 RTC
     pinMode(DS3231_SQW, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(DS3231_SQW), onSecond, FALLING);
+    attachInterrupt(digitalPinToInterrupt(DS3231_SQW), handle_sqw, FALLING);
 }
 
 void loop() {
-    if (rtc.interrupt_flag){
-        rtc.interrupt_flag = false;
-        rtc.update();
+    if (rtc.update()){
         Serial.printf("%02d:%02d:%02d %s\n", rtc.hour(), rtc.minute(), rtc.second(), (rtc.time_of_day() == AM)? "AM" : "PM");
     }
     delay(10);
-}
-
-void IRAM_ATTR onSecond(){
-    rtc.interrupt_flag = true;
 }
