@@ -26,9 +26,6 @@ bool Clock::begin(){
 bool Clock::update(){
     if (interrupt_flag == CAS::NONE) return false;
 
-    //reset flag
-    interrupt_flag = CAS::NONE;
-
     int32_t delta_seconds = 0;
     switch (interrupt_flag){
         case CAS::INC_HOUR:
@@ -44,8 +41,14 @@ bool Clock::update(){
             delta_seconds = -60;
             break;
         default:
-            return true;
+            break;
     }
+
+    //reset flag
+    interrupt_flag = CAS::NONE;
+
+    //skip an I2C call if we can avoid it
+    if (delta_seconds == 0) return true;
 
     //update RTC over I2C (slow part!!)
     DateTime current = rtc.now();
