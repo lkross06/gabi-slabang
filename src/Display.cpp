@@ -13,7 +13,7 @@ Display::Display() :
     SSD1306_init(false),
     current_page(DisplayPage::NONE),
     last_clock_render({0, 0, 0, false}),
-    last_counter_render({0})
+    last_counter_render({0, 0, 0})
 {};
 
 bool Display::begin(){
@@ -67,9 +67,9 @@ bool Display::renderClock(uint8_t hour, uint8_t min, uint8_t sec, bool isPM){
     return true;
 }
 
-bool Display::renderCounter(uint32_t count){
+bool Display::renderCounter(uint32_t count, uint8_t month, uint8_t day){
     if (!SSD1306_init) return false;
-    if (!should_renderCounter(count)) return false;
+    if (!should_renderCounter(count, month, day)) return false;
     reset();
 
     SSD1306.setTextColor(SSD1306_WHITE);
@@ -77,13 +77,15 @@ bool Display::renderCounter(uint32_t count){
 
     SSD1306.setCursor(0, 0);
     if (count > 1){
-        SSD1306.printf("I'll see you in %u days!", count);
+        SSD1306.printf("I'll see you in\n%u\ndays!", count);
     } else if (count == 1) {
         SSD1306.printf("I'll see you tomorrow!!");
     } else {
         SSD1306.printf("Today's the day!!!");
     }
-    
+
+    SSD1306.setCursor(0, SCREEN_HEIGHT_PX - 8);
+    SSD1306.printf("Next date: %02u/%02u", month, day);
 
     SSD1306.display();
 
@@ -109,13 +111,15 @@ bool Display::should_renderClock(uint8_t hour, uint8_t min, uint8_t sec, bool is
     return true;
 }
 
-bool Display::should_renderCounter(uint32_t count){
-    bool changed = (count != last_counter_render.count);
+bool Display::should_renderCounter(uint32_t count, uint8_t month, uint8_t day){
+    bool changed = (count != last_counter_render.count || month != last_counter_render.month || day != last_counter_render.day);
 
     if (current_page == DisplayPage::COUNTER && !changed) return false;
 
     current_page = DisplayPage::COUNTER;
     last_counter_render.count = count;
+    last_counter_render.month = month;
+    last_counter_render.day = day;
 
     return true;
 }

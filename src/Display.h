@@ -32,7 +32,7 @@ public:
     /* Renders the clock screen with a given time */
     bool renderClock(uint8_t hour, uint8_t min, uint8_t sec, bool isPM);
     /* Renders the day counter with a set count */
-    bool renderCounter(uint32_t count);
+    bool renderCounter(uint32_t count, uint8_t month, uint8_t day);
     
     /* Clears display and resets mode to default, renders default screen */
     void reset();
@@ -51,8 +51,9 @@ private:
 
     struct {
         uint32_t count;
+        uint8_t month, day;
     } last_counter_render;
 
     bool should_renderClock(uint8_t hour, uint8_t min, uint8_t sec, bool isPM);
-    bool should_renderCounter(uint32_t count);
+    bool should_renderCounter(uint32_t count, uint8_t month, uint8_t day);
 };

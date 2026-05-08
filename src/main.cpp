@@ -93,6 +93,6 @@ void loop() {
         display.renderClock(now.twelveHour(), now.minute(), now.second(), now.isPM());
     } else if (state == STATE::COUNTER){
         uint32_t num_days = counter.num_days_between(rtc.now());
-        display.renderCounter(num_days);
+        display.renderCounter(num_days, counter.doa_month(), counter.doa_day());
     }
 }

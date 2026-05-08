@@ -17,7 +17,11 @@ public:
     bool begin();
     /* Looks at the interrupt flag set by the global interrupt handler, then adjusts DoA. Return true if any changes are made */
     bool update();
+    /* Calculate number of days between today and DoA, set DoA = today if in the past */
     uint32_t num_days_between(DateTime today);
+
+    inline uint8_t doa_month() { return day_of_arrival.month(); }
+    inline uint8_t doa_day() { return day_of_arrival.day(); }
 
     volatile CounterSignal interrupt_flag;
 private:
