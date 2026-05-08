@@ -6,7 +6,7 @@
 #define AM 0
 #define PM 1
 
-#define COMPILE_BUILD_TIME_S    8U
+#define COMPILE_BUILD_TIME_S    7U
 
 /* CLOCK ASYNC SIGNAL TYPES */
 enum class CAS : uint8_t {
@@ -25,10 +25,7 @@ public:
     bool begin();
     bool update();
 
-    inline uint8_t hour() { return rtc.now().twelveHour(); }
-    inline uint8_t minute() { return rtc.now().minute(); }
-    inline uint8_t second() { return rtc.now().second(); }
-    inline bool time_of_day() { return (rtc.now().hour() > 12)? PM : AM; }
+    inline DateTime now() { return rtc.now(); }
 
     volatile CAS interrupt_flag;
 

@@ -20,7 +20,7 @@ public:
     bool begin();
 
     bool renderLoadingSequence(uint16_t wait_ms = DEFAULT_LOADING_WAIT_MS, uint8_t steps_px = DEFAULT_LOADING_STEPS_PX);
-    bool renderClock(uint8_t hour, uint8_t min);
+    bool renderClock(uint8_t hour, uint8_t min, uint8_t sec, bool isPM);
     bool renderCounter(uint32_t count);
     
     /** Clears display and resets mode to default, renders default screen */

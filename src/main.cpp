@@ -1,90 +1,82 @@
-// #include <Arduino.h>
-// #include <EasyButton.h>
+#include <Arduino.h>
+#include <EasyButton.h>
+#include <Wire.h>
+#include <RTClib.h>
 
-// #include "Display.h"
-
-// enum class MODE : bool {
-//   CLOCK = 0,
-//   COUNTER = 1
-// };
-
-// Display display;
-// volatile MODE currentMode;
-
-// EasyButton button(21);
-// void IRAM_ATTR handler();
-
-// void setup() {
-//   Serial.begin(115200);
-//   delay(1000);
-
-//   currentMode = MODE::CLOCK;
-
-//   while (!display.begin()) { delay(500); }
-
-//   button.begin();
-//   button.onPressed(handler);
-
-//   Serial.println("Setup complete");
-
-//   display.renderLoadingSequence();
-//   if (currentMode == MODE::CLOCK) { display.renderClock(11, 30); }
-//   else { display.renderCounter(67); }
-// }
-
-// void loop() {
-//   button.read();
-  
-//   if (currentMode == MODE::CLOCK){
-//     display.renderClock(11, 30);
-//   } else {
-//     display.renderCounter(67);
-//   }
-// }
-
-// void IRAM_ATTR handler() {
-//   currentMode = (currentMode == MODE::CLOCK) ? MODE::COUNTER : MODE::CLOCK;
-// }
-
-// #include <Wire.h>
-// #include <RTClib.h>
-
-// #include "pins.h"
-
-// RTC_DS3231 rtc;
-// volatile bool secondTick = false;
-
-// // ISR: This runs exactly once per second
-// void IRAM_ATTR onSecond() {
-//     secondTick = true;
-// }
-
-#include "Clock.h"
 #include "pins.h"
+#include "Display.h"
+#include "Clock.h"
+
+enum class STATE : bool {
+  CLOCK = 0,
+  COUNTER = 1
+};
 
 Clock rtc;
+Display display;
+volatile STATE state;
 
-/* Handle a tick of the square wave interrupt sent by DS3231 RTC at 1 Hz */
+EasyButton button_switchState(BUTTON_SWITCHSTATE);
+EasyButton button_incHour(BUTTON_INCHOUR);
+EasyButton button_decHour(BUTTON_DECHOUR);
+EasyButton button_incMin(BUTTON_INCMIN);
+EasyButton button_decMin(BUTTON_DECMIN);
+
 void IRAM_ATTR handle_sqw() { rtc.interrupt_flag = CAS::SQW; }
 void IRAM_ATTR handle_incHour() { rtc.interrupt_flag = CAS::INC_HOUR; }
 void IRAM_ATTR handle_decHour() { rtc.interrupt_flag = CAS::DEC_HOUR; }
 void IRAM_ATTR handle_incMin() { rtc.interrupt_flag = CAS::INC_MIN; }
 void IRAM_ATTR handle_decMin() { rtc.interrupt_flag = CAS::DEC_MIN; }
+void IRAM_ATTR handle_switchState() { state = (state == STATE::CLOCK)? STATE::COUNTER : STATE::CLOCK; }
 
 void setup() {
     Serial.begin(115200);
     delay(1000);
 
-    if (!rtc.begin()) {Serial.println("failure"); while(1); };
+    //NOTE: start RTC before display so that clock counts through the loading sequence
+    if (!rtc.begin()) { Serial.println("failure"); while(1); };
+    if (!display.begin()) { Serial.println("failure"); while(1); };
 
     // global interrupt handler for 1Hz Square Wave from DS3231 RTC
     pinMode(DS3231_SQW, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(DS3231_SQW), handle_sqw, FALLING);
+
+    button_switchState.begin();
+    button_incHour.begin();
+    button_decHour.begin();
+    button_incMin.begin();
+    button_decMin.begin();
+
+    button_switchState.onPressed(handle_switchState);
+    button_incHour.onPressed(handle_incHour);
+    button_decHour.onPressed(handle_decHour);
+    button_incMin.onPressed(handle_incMin);
+    button_decMin.onPressed(handle_decMin);
+
+    state = STATE::CLOCK;
+
+    Serial.println("Setup complete");
+    display.renderLoadingSequence();
 }
 
 void loop() {
-    if (rtc.update()){
-        Serial.printf("%02d:%02d:%02d %s\n", rtc.hour(), rtc.minute(), rtc.second(), (rtc.time_of_day() == AM)? "AM" : "PM");
+    DateTime now = rtc.now();
+
+    if(rtc.update()){
+        Serial.printf("%02u:%02u:%02u %s\n", now.twelveHour(), now.minute(), now.second(), (now.isPM())? "PM" : "AM");
     }
-    delay(10);
+
+    button_switchState.read();
+    button_incHour.read();
+    button_decHour.read();
+    button_incMin.read();
+    button_decMin.read();
+  
+    if (state == STATE::CLOCK){
+        display.renderClock(now.twelveHour(), now.minute(), now.second(), now.isPM());
+    } else {
+        display.renderCounter(67);
+    }
+
+    delay(5);
 }

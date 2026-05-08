@@ -48,7 +48,7 @@ bool Display::renderLoadingSequence(uint16_t wait_ms, uint8_t steps_px){
     return true;
 }
 
-bool Display::renderClock(uint8_t hour, uint8_t min){
+bool Display::renderClock(uint8_t hour, uint8_t min, uint8_t sec, bool isPM){
     if (!SSD1306_init) return false;
     reset();
 
@@ -58,8 +58,8 @@ bool Display::renderClock(uint8_t hour, uint8_t min){
     SSD1306.setCursor(0,0);
     SSD1306.print("Clock");
 
-    SSD1306.setCursor(SCREEN_WIDTH_PX / 2, SCREEN_HEIGHT_PX / 2);
-    SSD1306.printf("%02u:%02u", hour, min);
+    SSD1306.setCursor(SCREEN_WIDTH_PX / 2 - 32, SCREEN_HEIGHT_PX / 2);
+    SSD1306.printf("%02u:%02u:%02u %s", hour, min, sec, (isPM)? "PM" : "AM");
 
     SSD1306.display();
 
