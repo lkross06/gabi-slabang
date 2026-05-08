@@ -14,6 +14,9 @@ bool Clock::begin(){
     DateTime compileTime = DateTime(F(__DATE__), F(__TIME__));
     rtc.adjust(compileTime.unixtime() + COMPILE_BUILD_TIME_S);
 
+    //For some reason polling the RTC once on init will sync up the clock. I have no idea why
+    DateTime now = rtc.now();
+
     // configure 1Hz Square Wave output on SQW pin
     rtc.writeSqwPinMode(DS3231_SquareWave1Hz);
 
