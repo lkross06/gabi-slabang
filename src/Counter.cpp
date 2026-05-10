@@ -41,16 +41,20 @@ bool Counter::update(){
 }
 
 uint32_t Counter::num_days_between(DateTime today){
-    int32_t diff = (day_of_arrival - today).totalseconds();
-
-    if (diff <= 0){
-        day_of_arrival = DateTime(
+    //normalize "today" to midnight so that rounding is correct
+    DateTime today_midnight = DateTime(
             today.year(),
             today.month(),
             today.day()
             //omitted time field defaults to midnight
-        );
-    }
+    );
 
-    return (diff + 43200) / 86400; //number of days, rounded
+    int32_t diff = (day_of_arrival - today_midnight).totalseconds();
+
+    if (diff <= 0){
+        day_of_arrival = today_midnight; //make sure we don't fall way behind the current day with our pointer
+        return 0;
+    }
+    
+    return diff / 86400; //should be an exact multiple of 86400 since both dates are at midnight
 }
