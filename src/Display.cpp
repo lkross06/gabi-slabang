@@ -1,6 +1,16 @@
 #include "Display.h"
 
 #include "splash.h"
+#include "utils.h"
+
+namespace {
+    #define TEXT_SIZE_1_WIDTH   5U
+    #define TEXT_SIZE_1_HEIGHT  8U
+    #define TEXT_SIZE_2_WIDTH   2U * TEXT_SIZE_1_WIDTH
+    #define TEXT_SIZE_2_HEIGHT  2U * TEXT_SIZE_1_HEIGHT
+    #define TEXT_SIZE_3_WIDTH   3U * TEXT_SIZE_1_WIDTH
+    #define TEXT_SIZE_3_HEIGHT  3U * TEXT_SIZE_1_HEIGHT
+}
 
 Display::Display() : 
     SSD1306(SCREEN_WIDTH_PX,
@@ -34,7 +44,7 @@ bool Display::renderLoadingSequence(uint16_t wait_ms, uint8_t steps_px){
     uint32_t delta_ms = wait_ms / steps_px;
 
     // render initial image
-    SSD1306.drawBitmap(0, 0, loading_splash_data, loading_splash_width, loading_splash_height, SSD1306_WHITE);
+    SSD1306.drawBitmap(0, 0, loading_data, loading_width, loading_height, SSD1306_WHITE);
     SSD1306.display();
 
     delay(2000);
@@ -57,10 +67,13 @@ bool Display::renderClock(uint8_t hour, uint8_t min, uint8_t sec, bool isPM){
     reset();
 
     SSD1306.setTextColor(SSD1306_WHITE);
-    SSD1306.setTextSize(1);
+    SSD1306.setTextSize(3);
 
-    SSD1306.setCursor(SCREEN_WIDTH_PX / 2 - 32, SCREEN_HEIGHT_PX / 2);
-    SSD1306.printf("%02u:%02u:%02u %s", hour, min, sec, (isPM)? "pm" : "am");
+    SSD1306.setCursor((SCREEN_WIDTH_PX - (TEXT_SIZE_3_WIDTH * 7)) / 2, (SCREEN_HEIGHT_PX - TEXT_SIZE_3_HEIGHT) / 2);
+    SSD1306.printf("%02u:%02u", hour, min);
+
+    SSD1306.setTextSize(1);
+    SSD1306.print((isPM)? " pm" : " am");
 
     SSD1306.display();
 
@@ -73,19 +86,27 @@ bool Display::renderCounter(uint32_t count, uint8_t month, uint8_t day){
     reset();
 
     SSD1306.setTextColor(SSD1306_WHITE);
-    SSD1306.setTextSize(1);
 
-    SSD1306.setCursor(0, 0);
+    SSD1306.setCursor(22, 22);
     if (count > 1){
-        SSD1306.printf("I'll see you in\n%u\ndays!", count);
+        SSD1306.drawBitmap(0, 0, ndays_data, ndays_width, ndays_height, SSD1306_WHITE);
+
+        SSD1306.setTextSize(2);
+        SSD1306.printf("%3u", count);
     } else if (count == 1) {
-        SSD1306.printf("I'll see you tomorrow!!");
+        SSD1306.drawBitmap(0, 0, tomorrow_data, tomorrow_width, tomorrow_height, SSD1306_WHITE);
     } else {
-        SSD1306.printf("Today's the day!!!");
+        SSD1306.drawBitmap(0, 0, today_data, today_width, today_height, SSD1306_WHITE);
     }
 
-    SSD1306.setCursor(0, SCREEN_HEIGHT_PX - 8);
-    SSD1306.printf("Next date: %02u/%02u", month, day);
+    char formatted_date[MAX_FORMATTED_MD_SIZE];
+    size_t n = formatMD(month, day, formatted_date);
+
+    if (n > 0) {
+        SSD1306.setCursor(0, SCREEN_HEIGHT_PX - 8);
+        SSD1306.setTextSize(1);
+        SSD1306.print(formatted_date);
+    }
 
     SSD1306.display();
 

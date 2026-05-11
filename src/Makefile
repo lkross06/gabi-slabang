@@ -22,9 +22,12 @@ endef
 export HEADER
 export FOOTER
 
-splash.h: make_splash.py slabang-splash.png
+splash.h: make_splash.py media/loading.png media/today.png media/tomorrow.png media/ndays.png
 	echo "$$HEADER" > $@
-	${PY} make_splash.py slabang-splash.png loading_splash >>$@
+	${PY} make_splash.py media/loading.png loading >>$@
+	${PY} make_splash.py media/today.png today >>$@
+	${PY} make_splash.py media/tomorrow.png tomorrow >>$@
+	${PY} make_splash.py media/ndays.png ndays >>$@
 	echo "$$FOOTER" >> $@
 
 clean:
