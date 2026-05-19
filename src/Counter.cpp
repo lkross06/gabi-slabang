@@ -9,7 +9,7 @@ bool Counter::begin(){
     day_of_arrival = DateTime(
         compileTime.year(),
         compileTime.month(),
-        compileTime.day()
+        compileTime.day() + 5
         //omitted time field defaults to midnight
     );
 

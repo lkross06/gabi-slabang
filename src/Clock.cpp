@@ -12,7 +12,7 @@ bool Clock::begin(){
 
     // adjust by a few seconds to account for compile/build time
     DateTime compileTime = DateTime(F(__DATE__), F(__TIME__));
-    rtc.adjust(compileTime.unixtime() + COMPILE_BUILD_TIME_S);
+    rtc.adjust(DateTime(compileTime.unixtime() + COMPILE_BUILD_TIME_S));
 
     //TODO: for some reason the clock still doesn't adjust sometimes
     Serial.printf("At compile time: %02u:%02u:%02u %s\n", compileTime.twelveHour(), compileTime.minute(), compileTime.second(), (compileTime.isPM())? "pm" : "am");
